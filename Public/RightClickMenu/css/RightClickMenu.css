@@ -1,0 +1,47 @@
+.context-menu {
+    position: absolute;
+    text-align: center;
+    background: lightgray;
+    border: 1px solid black;
+}
+
+.context-menu ul {
+    padding: 0px;
+    margin: 0px;
+    min-width: 150px;
+    list-style: none;
+}
+
+.context-menu ul li {
+    padding-bottom: 7px;
+    padding-top: 7px;
+    border: 1px solid black;
+}
+
+.context-menu ul li a {
+    text-decoration: none;
+    color: black;
+}
+
+.context-menu ul li:hover {
+    background: darkgray;
+}
+
+.float{
+  position:fixed;
+  width:60px;
+  height:60px;
+  bottom:40px;
+  right:40px;
+  background-color:#0C9;
+  color:#FFF;
+  border-radius:50px;
+  text-align:center;
+  box-shadow: 2px 2px 3px #999;
+  text-decoration: none;
+}
+
+.my-float{
+  margin-top: 15px;
+  font-size:20px;
+}
