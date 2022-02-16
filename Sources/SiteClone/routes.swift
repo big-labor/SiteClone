@@ -1,4 +1,5 @@
 import Vapor
+import Gzip
 
 struct EditSiteForm: Content {
     static var defaultContentType: HTTPMediaType = .formData
@@ -23,11 +24,12 @@ func routes(_ app: Application) throws {
     
     app.post("edit") { req -> Response in
         let form = try req.content.decode(EditSiteForm.self)
-        print(form.website)
         
-        let site = try await req.client.get("http://motherfuckingwebsite.com")
-        let content = String(bytes: site.body!.readableBytesView, encoding: .utf8)!
-        let editableHTML = try makeEditable(req: req, content: content)
+        let website: URI = form.website == "" ? URI("http://motherfuckingwebsite.com") : URI(stringLiteral: form.website)
+        print(website)
+        
+        let doc = try await recursiveDownload(req: req, uri: website)
+        let editableHTML = try makeEditable(req: req, doc: doc)
         
         let response = try await editableHTML.encodeResponse(for: req)
         response.headers.contentType = .html

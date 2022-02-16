@@ -3,11 +3,12 @@ import SwiftSoup
 import Files
 import Vapor
 
-func makeEditable(req: Request, content: String) throws -> String {
-    let doc = try SwiftSoup.parse(content)
+private let editableTags = "p, h1, h2, h3, a, button, li, blockquote, aside, span, div, summary"
+
+func makeEditable(req: Request, doc: Document) throws -> String {
     
     // we don't want our right click menu to also be editable
-    try doc.select("p, h1, h2, h3, a, button, li, blockquote").attr("contenteditable", "true")
+    try doc.select(editableTags).attr("contenteditable", "true")
     
     let htmlFilePath = req.application.directory.publicDirectory.appending("RightClickMenu/html/RightClickMenu.html")
     let htmlFile = try File(path: htmlFilePath)
@@ -26,16 +27,28 @@ func makeEditable(req: Request, content: String) throws -> String {
 func makeNotEditable(req: Request, content: String) throws -> String {
     let doc = try SwiftSoup.parse(content)
     
-    try doc.select("p, h1, h2, h3, a, button, li, blockquote").removeAttr("contenteditable")
+    try doc.select(editableTags).removeAttr("contenteditable")
     let siteEditElements = try doc.select(".site-edit")
     try siteEditElements.remove()
     
     return try doc.html()
 }
 
-//func recursiveDownload(url: URL) async throws -> Document {
-//    let session = URLSession.shared
-//    let (data, response) = try await session.data(from: url)
-//    print(response)
-//    return try SwiftSoup.parse(String(data: data, encoding: .utf8)!)
-//}
+func recursiveDownload(req: Request, uri: URI) async throws -> Document {
+    var site = try await req.client.get(uri)
+    print(site.headers.debugDescription)
+    
+    let contentData = site.body!.readData(length: site.body!.readableBytes)!
+    let encoding = getEncoding(httpHeaders: site.headers)
+    
+    let content = String(data: contentData, encoding: encoding)!
+    return try SwiftSoup.parse(content)
+}
+
+func getEncoding(httpHeaders: HTTPHeaders) -> String.Encoding {
+    if httpHeaders.contentType?.parameters["charset"] == "ISO-8859-1" {
+        return .isoLatin1
+    }
+    
+    return .utf8
+}
